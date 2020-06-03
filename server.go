@@ -116,12 +116,7 @@ func find(query string) (*string, error) {
 	}
 
 	// return the filepath/nil if no file was found
-	if foundPath != nil {
-		return foundPath, nil
-	} else {
-		// signifies no such file was found
-		return nil, nil
-	}
+	return foundPath, nil
 }
 
 func main() {
