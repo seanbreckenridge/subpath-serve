@@ -143,7 +143,7 @@ func main() {
 				} else {
 					// if the file was found, return the read file
 					data, _ := ioutil.ReadFile(*foundPath)
-					w.Header().Set("X-FilePath", *foundPath)
+					w.Header().Set("X-Filepath", *foundPath)
 					fmt.Fprintf(w, "%s", data)
 				}
 			}
