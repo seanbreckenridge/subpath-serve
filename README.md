@@ -38,7 +38,7 @@ Usage of subpath-serve:
 
 ```
 git clone "https://gitlab.com/seanbreckenridge/dotfiles.git" "./serve"
-go run ./server.go
+subpath-serve
 ```
 
 ```
@@ -46,3 +46,15 @@ curl localhost:8050/rc.conf
 ```
 
 The response contains the `X-FilePath` header, which includes the full path to the matched file.
+
+### Install
+
+Install `golang`.
+
+You can clone and run `go build`, or:
+
+```
+go get -v -u "gitlab.com/seanbreckenridge/subpath-serve"
+```
+
+which downloads, builds and puts the binary on your `$GOBIN`.
