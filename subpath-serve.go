@@ -62,7 +62,7 @@ html, body {
          margin: 0px;
          padding: 0px;
          border: 0px;
-         width: 100vw;
+         width: 100%;
          min-height: 100vh;
          background-color: #111;
          color: white;
@@ -135,6 +135,7 @@ html, body {
             </div>
         </div>
     </main>
+
     <footer>
         Served with <a href="https://gitlab.com/seanbreckenridge/subpath-serve">subpath-serve</a>
     </footer>
