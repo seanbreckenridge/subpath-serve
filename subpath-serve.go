@@ -266,7 +266,7 @@ func main() {
 			}, tmpl, isDark)
 		} else {
 			// search for the file
-			foundPath, err := find(r.URL.Path[1:])
+			foundPath, err := find(strings.TrimRight(r.URL.Path[1:], "/"))
 			// if there was an OS error
 			if err != nil {
 				w.WriteHeader(http.StatusInternalServerError)
