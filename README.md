@@ -1,20 +1,20 @@
 # subpath-serve
 
-A small server used to serve text files from my [dotfiles](https://gitlab.com/seanbreckenridge/dotfiles) (though it could be used to serve anything).
+A small server used to serve text files from my [dotfiles](https://gitlab.com/seanbreckenridge/dotfiles) (though it could be used to serve any text files/folder).
 
-Any request to `/...` tries to match against some file basepath in `./serve`.
+Any request to `/...` tries to match against some file basepath from a root folder (defaults to `./serve`).
 
 A request to the base path (`/`) without anything else returns a newline delimited list of everything in the `./serve` folder.
 
 Does not build an index at build/initial server start, so the `./serve` folder can be modified while the server is running to change results; each request searches the folder for the query.
 
-Appending `?dark` to the end of a URL converts a request to an HTML response with a dark theme.
+Appending `?dark` to the end of a URL converts a request to an HTML response with a dark theme, and converts the index to link to each page.
 
 Example Requests:
 
 - <https://sean.fish/d/>
-- <https://sean.fish/d/rc.conf/>
-- <https://sean.fish/d/rc.conf/?dark>
+- <https://sean.fish/d/rc.conf>
+- <https://sean.fish/d/rc.conf?dark>
 
 ### matching strategy
 
@@ -53,7 +53,7 @@ subpath-serve
 curl localhost:8050/rc.conf
 ```
 
-The response contains the `X-FilePath` header, which includes the full path to the matched file.
+The response contains the `X-Filepath` header, which includes the full path to the matched file.
 
 ### Install
 
