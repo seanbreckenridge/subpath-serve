@@ -1,6 +1,6 @@
 # subpath-serve
 
-A small server used to serve text files from my dotfiles (though it could be used to serve anything).
+A small server used to serve text files from my [dotfiles](https://gitlab.com/seanbreckenridge/dotfiles) (though it could be used to serve anything).
 
 Any request to `/...` tries to match against some file basepath in `./serve`.
 

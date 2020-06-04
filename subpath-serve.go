@@ -16,8 +16,6 @@ import (
 // default port to serve subpath-serve on
 const defaultPort = 8050
 
-const templateName = "dark"
-
 // paths to ignore from serveFolder
 var ignorePaths = [...]string{".git"}
 
@@ -27,9 +25,13 @@ type config struct {
 	serveFolder string
 }
 
+// PageLines is used for the Index page
+// which needs each line to be split up so links can be added
+// If PageLines is empty, uses pageContents instead
 type PageInfo struct {
 	Title        string
 	PageContents string
+	PageLines    []string
 }
 
 func parseFlags() *config {
@@ -53,8 +55,8 @@ func parseFlags() *config {
 }
 
 func setupTemplate() *template.Template {
-	tmpl, err := template.New(templateName).Parse(`<!DOCTYPE html>
-<html class="no-js" lang="en">
+	tmpl, err := template.New("dark").Parse(`<!DOCTYPE html>
+<html lang="en">
 <head><meta charset="utf-8"><style>
 html, body {
          margin: 0px;
@@ -64,6 +66,7 @@ html, body {
          min-height: 100vh;
          background-color: #111;
          color: white;
+         font-family: "Courier", sans-serif;
      }
      main {
          display: flex;
@@ -72,10 +75,10 @@ html, body {
      .container {
          width: 90%;
          margin: 2rem;
-         font-family: "Courier", sans-serif;
      }
-     pre {
+     div#rounded {
          background-color: #1d2330;
+         font-size: 120%;
          margin: 1rem;
          padding: 1rem;
          border-radius: min(0.25rem, 15px);
@@ -83,18 +86,38 @@ html, body {
      .title {
          display: flex;
          flex-direction: row;
-         justify-content: space-between;
+         justify-content: flex-end;
          width: 90%;
          margin-left: auto;
          margin-right: auto;
      }
      code {
-         font-size: 120%;
          white-space: pre-wrap; /* css-3 */
          white-space: -moz-pre-wrap; /* Mozilla, since 1999 */
          white-space: -pre-wrap; /* Opera 4-6 */
          white-space: -o-pre-wrap; /* Opera 7 */
          word-wrap: break-word; /* Internet Explorer 5.5+ */
+     }
+     p {
+         margin: 4px;
+     }
+     a {
+         color: #0779e4;
+     }
+     a:visited {
+         color: #4cbbb9;
+     }
+     a:hover {
+          color: #77d8d8;
+     }
+     a:active {
+         color: #eff3c6;
+     }
+     footer {
+         width: 80%;
+         margin-left: auto;
+         margin-right: auto;
+         padding-bottom: 2rem;
      }
     </style>
     <title>{{ .Title }}</title>
@@ -103,19 +126,21 @@ html, body {
     <main>
         <div class="container">
             <div class="title">
-                <a href="https://gitlab.com/seanbreckenridge/dotfiles.git">Dotfiles Index</a>
                 <a href="#" onclick="RawFile()">Raw</a>
             </div>
-            <pre>
-                <code>
-{{ .PageContents }}
-                </code>
-            </pre>
+            <div id="rounded">
+{{ range $element := .PageLines }}
+<p><a href="./{{ $element }}?dark">{{ $element }}</a></p>
+{{ else }}<pre><code>{{ .PageContents }}</code></pre>{{ end }}
+            </div>
         </div>
     </main>
+    <footer>
+        Served with <a href="https://gitlab.com/seanbreckenridge/subpath-serve">subpath-serve</a>
+    </footer>
     <script>
         function RawFile() {
-            window.location.href = window.location.href.split("?")[0]
+            window.location.href = window.location.href.substring(0, window.location.href.lastIndexOf("?"));
         }
     </script>
 </body>
@@ -219,6 +244,7 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+	// global handler
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		isDark := false
 		if _, ok := r.URL.Query()["dark"]; ok {
@@ -226,9 +252,17 @@ func main() {
 		}
 		r.URL.Query()
 		if r.URL.Path == "/" {
+			// split the content into multiple lines if this is a html response
+			// so that links can be added nicely
+			pageContents := index()
+			pageLines := []string{}
+			if isDark {
+				pageLines = strings.Split(strings.Trim(pageContents, "\n"), "\n")
+			}
 			render(&w, &PageInfo{
-				PageContents: index(),
+				PageContents: pageContents,
 				Title:        "Index",
+				PageLines:    pageLines,
 			}, tmpl, isDark)
 		} else {
 			// search for the file
