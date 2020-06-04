@@ -8,6 +8,14 @@ A request to the base path (`/`) without anything else returns a newline delimit
 
 Does not build an index at build/initial server start, so the `./serve` folder can be modified while the server is running to change results; each request searches the folder for the query.
 
+Appending `?dark` to the end of a URL converts a request to an HTML response with a dark theme.
+
+Example Requests:
+
+- <https://sean.fish/d/>
+- <https://sean.fish/d/rc.conf/>
+- <https://sean.fish/d/rc.conf/?dark>
+
 ### matching strategy
 
 An example of how this matches. If the files in `./serve` are:

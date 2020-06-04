@@ -4,6 +4,7 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	"html/template"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -15,6 +16,8 @@ import (
 // default port to serve subpath-serve on
 const defaultPort = 8050
 
+const templateName = "dark"
+
 // paths to ignore from serveFolder
 var ignorePaths = [...]string{".git"}
 
@@ -22,6 +25,11 @@ var ignorePaths = [...]string{".git"}
 type config struct {
 	port        int
 	serveFolder string
+}
+
+type PageInfo struct {
+	Title        string
+	PageContents string
 }
 
 func parseFlags() *config {
@@ -42,6 +50,81 @@ func parseFlags() *config {
 		port:        *port,
 		serveFolder: *serveFolder,
 	}
+}
+
+func setupTemplate() *template.Template {
+	tmpl, err := template.New(templateName).Parse(`<!DOCTYPE html>
+<html class="no-js" lang="en">
+<head><meta charset="utf-8"><style>
+html, body {
+         margin: 0px;
+         padding: 0px;
+         border: 0px;
+         width: 100vw;
+         min-height: 100vh;
+         background-color: #111;
+         color: white;
+     }
+     main {
+         display: flex;
+         justify-content: center;
+     }
+     .container {
+         width: 90%;
+         margin: 2rem;
+         font-family: "Courier", sans-serif;
+     }
+     pre {
+         background-color: #1d2330;
+         margin: 1rem;
+         padding: 1rem;
+         border-radius: min(0.25rem, 15px);
+     }
+     .title {
+         display: flex;
+         flex-direction: row;
+         justify-content: space-between;
+         width: 90%;
+         margin-left: auto;
+         margin-right: auto;
+     }
+     code {
+         font-size: 120%;
+         white-space: pre-wrap; /* css-3 */
+         white-space: -moz-pre-wrap; /* Mozilla, since 1999 */
+         white-space: -pre-wrap; /* Opera 4-6 */
+         white-space: -o-pre-wrap; /* Opera 7 */
+         word-wrap: break-word; /* Internet Explorer 5.5+ */
+     }
+    </style>
+    <title>{{ .Title }}</title>
+</head>
+<body>
+    <main>
+        <div class="container">
+            <div class="title">
+                <a href="https://gitlab.com/seanbreckenridge/dotfiles.git">Dotfiles Index</a>
+                <a href="#" onclick="RawFile()">Raw</a>
+            </div>
+            <pre>
+                <code>
+{{ .PageContents }}
+                </code>
+            </pre>
+        </div>
+    </main>
+    <script>
+        function RawFile() {
+            window.location.href = window.location.href.split("?")[0]
+        }
+    </script>
+</body>
+</html>
+`)
+	if err != nil {
+		panic(err)
+	}
+	return tmpl
 }
 
 // generates the response for the "/" request
@@ -119,32 +202,60 @@ func find(query string) (*string, error) {
 	return foundPath, nil
 }
 
+// is dark req specifies whether or not this is a
+// plain text response or rendered dark response
+func render(w *http.ResponseWriter, info *PageInfo, tmpl *template.Template, isDarkReq bool) {
+	if isDarkReq {
+		tmpl.Execute(*w, *info)
+	} else {
+		fmt.Fprintf(*w, "%s", (*info).PageContents)
+	}
+}
+
 func main() {
 	config := parseFlags()
+	tmpl := setupTemplate()
 	err := os.Chdir(config.serveFolder)
 	if err != nil {
 		panic(err)
 	}
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		isDark := false
+		if _, ok := r.URL.Query()["dark"]; ok {
+			isDark = true
+		}
+		r.URL.Query()
 		if r.URL.Path == "/" {
-			fmt.Fprintf(w, "%s", index())
+			render(&w, &PageInfo{
+				PageContents: index(),
+				Title:        "Index",
+			}, tmpl, isDark)
 		} else {
 			// search for the file
 			foundPath, err := find(r.URL.Path[1:])
 			// if there was an OS error
 			if err != nil {
 				w.WriteHeader(http.StatusInternalServerError)
-				fmt.Fprintf(w, "%s\n", err.Error())
+				render(&w, &PageInfo{
+					PageContents: err.Error(),
+					Title:        "Server Error",
+				}, tmpl, isDark)
 			} else {
 				// if the file couldnt be found
 				if foundPath == nil {
 					w.WriteHeader(http.StatusNotFound)
-					fmt.Fprintf(w, "Could not find a match for %s\n", r.URL.Path[1:])
+					render(&w, &PageInfo{
+						PageContents: fmt.Sprintf("Could not find a match for %s\n", r.URL.Path[1:]),
+						Title:        "404 - Not Found",
+					}, tmpl, isDark)
 				} else {
 					// if the file was found, return the read file
 					data, _ := ioutil.ReadFile(*foundPath)
 					w.Header().Set("X-Filepath", *foundPath)
-					fmt.Fprintf(w, "%s", data)
+					render(&w, &PageInfo{
+						PageContents: string(data),
+						Title:        *foundPath,
+					}, tmpl, isDark)
 				}
 			}
 		}
