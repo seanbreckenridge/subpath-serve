@@ -1,6 +1,6 @@
 # subpath-serve
 
-A small server used to serve text files from my [dotfiles](https://gitlab.com/seanbreckenridge/dotfiles) (though it could be used to serve any text files/folder).
+A small server used to serve text files from my [dotfiles](https://github.com/seanbreckenridge/dotfiles) (though it could be used to serve any text files/folder).
 
 Any request to `/...` tries to match against some file basepath from a root folder (defaults to `./serve`).
 
@@ -43,6 +43,8 @@ Usage of subpath-serve:
   -port int
     	port to serve subpath-serve on (default 8050)
 ```
+
+As an example, you can use my dotfiles:
 
 ```
 git clone "https://gitlab.com/seanbreckenridge/dotfiles.git" "./serve"

@@ -137,7 +137,7 @@ html, body {
     </main>
 
     <footer>
-        Served with <a href="https://gitlab.com/seanbreckenridge/subpath-serve">subpath-serve</a>
+        Served with <a href="https://github.com/seanbreckenridge/subpath-serve">subpath-serve</a>
     </footer>
     <script>
         function RawFile() {
