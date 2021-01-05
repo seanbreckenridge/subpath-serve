@@ -47,7 +47,7 @@ Usage of subpath-serve:
 As an example, you can use my dotfiles:
 
 ```
-git clone "https://gitlab.com/seanbreckenridge/dotfiles.git" "./serve"
+git clone "https://github.com/seanbreckenridge/dotfiles.git" "./serve"
 subpath-serve
 ```
 
@@ -64,7 +64,7 @@ Install `golang`.
 You can clone and run `go build`, or:
 
 ```
-go get -v -u "gitlab.com/seanbreckenridge/subpath-serve"
+go get -v -u "github.com/seanbreckenridge/subpath-serve"
 ```
 
 which downloads, builds and puts the binary on your `$GOBIN`.
