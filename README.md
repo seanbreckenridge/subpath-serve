@@ -64,7 +64,7 @@ Install `golang`.
 You can clone and run `go build`, or:
 
 ```
-go get -v -u "github.com/seanbreckenridge/subpath-serve"
+go install -v "github.com/seanbreckenridge/subpath-serve@latest"
 ```
 
 which downloads, builds and puts the binary on your `$GOBIN`.
