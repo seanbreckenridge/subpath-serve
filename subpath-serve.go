@@ -38,6 +38,12 @@ func parseFlags() *config {
 	// flag definitions
 	port := flag.Int("port", 8050, "port to serve subpath-serve on")
 	serveFolder := flag.String("folder", "./serve", "path to serve subpath-serve on")
+	// print repo in help text
+	flag.Usage = func() {
+		fmt.Fprintln(os.Stderr, "usage: subpath-serve [FLAG...]\nFor instructions, see https://github.com/seanbreckenridge/subpath-serve")
+		fmt.Fprintln(os.Stderr, "")
+		flag.PrintDefaults()
+	}
 	// parse flags
 	flag.Parse()
 	// make sure path is valid
