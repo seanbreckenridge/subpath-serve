@@ -10,7 +10,6 @@ import (
 	"net/http"
 	"net/url"
 	"os"
-	"path"
 	"path/filepath"
 	"strings"
 )
@@ -332,7 +331,7 @@ func main() {
 						PageContents: string(data),
 						Title:        *foundPath,
 						PrefixInfo: &HttpPrefix{
-							Url:      path.Join(config.repoPrefix, *foundPath),
+							Url:      fmt.Sprintf("%s/%s", config.repoPrefix, *foundPath),
 							Hostname: httpPrefixName,
 						},
 					}, tmpl, isDark)
