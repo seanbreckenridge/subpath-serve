@@ -8,7 +8,9 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"net/url"
 	"os"
+	"path"
 	"path/filepath"
 	"strings"
 )
@@ -23,6 +25,7 @@ var ignorePaths = [...]string{".git"}
 type config struct {
 	port        int
 	serveFolder string
+	repoPrefix  string
 }
 
 // PageLines is used for the Index page
@@ -32,12 +35,19 @@ type PageInfo struct {
 	Title        string
 	PageContents string
 	PageLines    []string
+	PrefixInfo   *HttpPrefix
+}
+
+type HttpPrefix struct {
+	Url      string
+	Hostname string
 }
 
 func parseFlags() *config {
 	// flag definitions
 	port := flag.Int("port", 8050, "port to serve subpath-serve on")
 	serveFolder := flag.String("folder", "./serve", "path to serve subpath-serve on")
+	repoPrefix := flag.String("git-http-prefix", "", "Optionally, provide a prefix which when the matched filepath is appended to, links to a git web view (e.g. https://github.com/seanbreckenridge/dotfiles/blob/master)")
 	// print repo in help text
 	flag.Usage = func() {
 		fmt.Fprintln(os.Stderr, "usage: subpath-serve [FLAG...]\nFor instructions, see https://github.com/seanbreckenridge/subpath-serve")
@@ -57,6 +67,7 @@ func parseFlags() *config {
 	return &config{
 		port:        *port,
 		serveFolder: *serveFolder,
+		repoPrefix:  strings.TrimSpace(*repoPrefix),
 	}
 }
 
@@ -120,11 +131,18 @@ html, body {
          color: #eff3c6;
      }
      footer {
+         display: flex;
+         flex-direction: column;
+         justify-content: flex-start;
          width: 80%;
          margin-left: auto;
          margin-right: auto;
-         padding-bottom: 2rem;
+         padding-bottom: 1rem;
      }
+     footer div {
+         padding-top: 0.5rem;
+         padding-bottom: 0.5rem;
+    }
     </style>
     <title>{{ .Title }}</title>
 </head>
@@ -143,7 +161,10 @@ html, body {
     </main>
 
     <footer>
-        Served with <a href="https://github.com/seanbreckenridge/subpath-serve">subpath-serve</a>
+				{{ if .PrefixInfo  }}
+				<div>View on <a href="{{ .PrefixInfo.Url }}">{{ .PrefixInfo.Hostname }}</a></div>
+				{{ end }}
+        <div>Served with <a href="https://github.com/seanbreckenridge/subpath-serve">subpath-serve</a></div>
     </footer>
     <script>
         function RawFile() {
@@ -244,6 +265,19 @@ func render(w *http.ResponseWriter, info *PageInfo, tmpl *template.Template, isD
 	}
 }
 
+// https://github.com/seanbreckenridge/dotfiles/blob/master -> github.com
+func getDomainName(httpPrefixUrl string) string {
+	name := "repository"
+	if httpPrefixUrl != "" {
+		u, err := url.Parse(httpPrefixUrl)
+		if err == nil {
+			parts := strings.Split(u.Hostname(), ".")
+			return parts[len(parts)-2]
+		}
+	}
+	return name
+}
+
 func main() {
 	config := parseFlags()
 	tmpl := setupTemplate()
@@ -251,6 +285,7 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+	httpPrefixName := strings.Title(getDomainName(config.repoPrefix))
 	// global handler
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		isDark := false
@@ -296,6 +331,10 @@ func main() {
 					render(&w, &PageInfo{
 						PageContents: string(data),
 						Title:        *foundPath,
+						PrefixInfo: &HttpPrefix{
+							Url:      path.Join(config.repoPrefix, *foundPath),
+							Hostname: httpPrefixName,
+						},
 					}, tmpl, isDark)
 				}
 			}

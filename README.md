@@ -37,9 +37,13 @@ It matches `./folder1/a` just because thats the one it found first, if there's a
 ### Run
 
 ```sh
-Usage of subpath-serve:
+usage: subpath-serve [FLAG...]
+For instructions, see https://github.com/seanbreckenridge/subpath-serve
+
   -folder string
     	path to serve subpath-serve on (default "./serve")
+  -git-http-prefix string
+    	Optionally, provide a prefix which when the matched filepath is appended to, links to a git web view (e.g. https://github.com/seanbreckenridge/dotfiles/blob/master)
   -port int
     	port to serve subpath-serve on (default 8050)
 ```
