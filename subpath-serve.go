@@ -277,6 +277,11 @@ func getDomainName(httpPrefixUrl string) string {
 	return name
 }
 
+func hasQueryParam(queryValues url.Values, queryParam string) bool {
+	_, ok := queryValues[queryParam]
+	return ok
+}
+
 func main() {
 	config := parseFlags()
 	tmpl := setupTemplate()
@@ -287,10 +292,9 @@ func main() {
 	httpPrefixName := strings.Title(getDomainName(config.repoPrefix))
 	// global handler
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		isDark := false
-		if _, ok := r.URL.Query()["dark"]; ok {
-			isDark = true
-		}
+		queryParams := r.URL.Query()
+		isDark := hasQueryParam(queryParams, "dark")
+		isRedirect := hasQueryParam(queryParams, "redirect")
 		r.URL.Query()
 		if r.URL.Path == "/" {
 			// split the content into multiple lines if this is a html response
@@ -323,19 +327,29 @@ func main() {
 						PageContents: fmt.Sprintf("Could not find a match for %s\n", r.URL.Path[1:]),
 						Title:        "404 - Not Found",
 					}, tmpl, isDark)
-				} else {
-					// if the file was found, return the read file
-					data, _ := ioutil.ReadFile(*foundPath)
-					w.Header().Set("X-Filepath", *foundPath)
-					render(&w, &PageInfo{
-						PageContents: string(data),
-						Title:        *foundPath,
-						PrefixInfo: &HttpPrefix{
-							Url:      fmt.Sprintf("%s/%s", config.repoPrefix, *foundPath),
-							Hostname: httpPrefixName,
-						},
-					}, tmpl, isDark)
+					return
 				}
+				// file was found
+				url := fmt.Sprintf("%s/%s", config.repoPrefix, *foundPath)
+				// if were meant to redirect, early return
+				if isRedirect {
+					if config.repoPrefix != "" {
+						http.Redirect(w, r, url, 302)
+						return
+					}
+					fmt.Fprintf(os.Stderr, "Warning: tried to redirect to %s but no repoPrefix set\n", url)
+				}
+				// if the file was found, return the read file
+				data, _ := ioutil.ReadFile(*foundPath)
+				w.Header().Set("X-Filepath", *foundPath)
+				render(&w, &PageInfo{
+					PageContents: string(data),
+					Title:        *foundPath,
+					PrefixInfo: &HttpPrefix{
+						Url:      url,
+						Hostname: httpPrefixName,
+					},
+				}, tmpl, isDark)
 			}
 		}
 	})

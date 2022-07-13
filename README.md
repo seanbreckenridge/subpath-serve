@@ -10,6 +10,10 @@ Does not build an index at build/initial server start, so the `./serve` folder c
 
 Appending `?dark` to the end of a URL converts a request to an HTML response with a dark theme, and converts the index to link to each page.
 
+Appending `?redirect` to the end of the URL redirects to the corresponding `-git-http-prefix`, e.g.:
+
+`.gitignore?redirect` -> <https://github.com/seanbreckenridge/dotfiles/blob/master/.gitignore>
+
 Example Requests:
 
 - <https://sean.fish/d/>
