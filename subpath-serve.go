@@ -5,7 +5,6 @@ import (
 	"flag"
 	"fmt"
 	"html/template"
-	"io/ioutil"
 	"log"
 	"net/http"
 	"net/url"
@@ -340,7 +339,7 @@ func main() {
 					fmt.Fprintf(os.Stderr, "Warning: tried to redirect to %s but no repoPrefix set\n", url)
 				}
 				// if the file was found, return the read file
-				data, _ := ioutil.ReadFile(*foundPath)
+				data, _ := os.ReadFile(*foundPath)
 				w.Header().Set("X-Filepath", *foundPath)
 				render(&w, &PageInfo{
 					PageContents: string(data),
