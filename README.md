@@ -36,7 +36,7 @@ An example of how this matches. If the files in `./serve` are:
 | /b         | ./folder3/b |
 | /folder2/a | ./folder2/a |
 
-It matches `./folder1/a` just because thats the one it found first, if there's a possibility of a conflict, its better to provide a unique subpath.
+It matches `./folder1/a` just because that's the one it found first, if there's a possibility of a conflict, its better to provide a unique subpath.
 
 ### Run
 

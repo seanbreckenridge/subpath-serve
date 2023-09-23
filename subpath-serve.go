@@ -319,7 +319,7 @@ func main() {
 					Title:        "Server Error",
 				}, tmpl, isDark)
 			} else {
-				// if the file couldnt be found
+				// if the file couldn't be found
 				if foundPath == nil {
 					w.WriteHeader(http.StatusNotFound)
 					render(&w, &PageInfo{
