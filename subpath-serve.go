@@ -178,6 +178,13 @@ html, body {
 	return tmpl
 }
 
+func capitalize(s string) string {
+	if len(s) == 0 {
+		return s
+	}
+	return strings.ToUpper(s[:1]) + s[1:]
+}
+
 // generates the response for the "/" request
 func index() string {
 	var indexBuilder strings.Builder
@@ -288,7 +295,7 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	httpPrefixName := strings.Title(getDomainName(config.repoPrefix))
+	httpPrefixName := capitalize(getDomainName(config.repoPrefix))
 	// global handler
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		queryParams := r.URL.Query()
